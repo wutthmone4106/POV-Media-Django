@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Point Of View | Categories {% endblock %}
+
+{% block main %}
+    <style>
+    .pagination .page-item.active.custom-active .page-link {
+        background-color: #111 !important; 
+        border-color: #111 !important;
+        color: #fff !important;
+    }
+
+    .pagination .page-link {
+        color: #111; 
+    }
+
+    .pagination .page-link:hover {
+        background-color: #f8f9fa;
+        color: #000;
+    }
+    </style>
+  <!-- Main Starts -->
+    <!-- Featured Posts Start -->
+    <h3 class="text-uppercase text-dark mb-3" style="letter-spacing: 2px; text-align: center; font-family: 'Inter'; font-weight: bold;">Category - {{ category }}</h3>
+    <div class="row mb-2">
+      {% if posts %}
+      {% for post in posts %}
+      <div class="col-md-6 d-flex"> 
+        <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm position-relative w-100" style="height: 250px;"> <div class="col p-4 d-flex flex-column position-static">
+            <strong class="d-inline-block mb-2 text-primary">{{ post.category.category_name }}</strong>
+            <h3 class="mb-0" style="font-size: 1.5rem;">{{ post.title|truncatechars:45 }}</h3>
+            <div class="text-muted small p-1">By <b>{{ post.author }}</b> | {{ post.created_at|date:"M d, Y" }}</div>
+
+            <p class="card-text mb-auto">{{ post.description | truncatewords:12 }}</p>
+
+            <a href="{% url 'blogs' post.slug %}" class="stretched-link fw-bold">Continue reading</a>
+          </div>
+        
+          <div class="col-auto d-none d-lg-block">
+            {% if post.image %}
+              <img src="{{ post.image.url }}" 
+                   style="width:200px; height:250px; object-fit:cover;" 
+                   alt="Post image">
+            {% else %}
+              <div style="width:200px; height:250px; background:#555; display:flex; align-items:center; justify-content:center; color:white;">
+                No Image
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p>No posts found</p>
+      {% endif %}
+    </div>
+    <!-- Featured Posts End -->
+  <!-- Main Ends -->
+  {% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,1190 @@
+{% load crispy_forms_tags %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POV Media | Dashboard</title>
+    <!-- Link to Bootstrap -->
+    <link href="{% static 'css/bootstrap.css' %}" type="text/css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="shortcut icon" href="{% static 'images/intersect.png' %}" type="image/x-icon">
+    
+    <style>
+        :root {
+            --sb-width: 260px;
+            --pov-black: #111111;
+            --pov-gray: #f9f9fb;
+            --border-color: #ededed;
+            --text-muted: #888;
+            --radius: 12px; 
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fff;
+            color: var(--pov-black);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Architecture */
+        #sidebar {
+            width: var(--sb-width);
+            height: 100vh;
+            position: fixed;
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .brand-area {
+            padding: 35px 25px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-top: 10px;
+        }
+
+        .nav-link {
+            padding: 12px 25px;
+            color: #444;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            border: none;
+            background: none;
+            width: 100%;
+            transition: 0.15s;
+            font-size: 0.9rem;
+        }
+
+        .nav-link i { margin-right: 12px; font-size: 1.1rem; }
+        .nav-link:hover { color: #000; background: var(--pov-gray); }
+        .nav-link.active { color: #000; font-weight: 700; background: var(--pov-gray); border-right: 3px solid #000; }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Content Shell */
+        #main-wrapper { margin-left: var(--sb-width); transition: 0.3s; }
+        
+        .top-nav {
+            padding: 15px 35px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .search-bar {
+            background: var(--pov-gray);
+            border-radius: var(--radius);
+            padding: 6px 15px;
+            width: 320px;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        .profile-group { cursor: pointer; }
+        .profile-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); }
+
+        .page-body { padding: 40px; }
+
+        /* UI Components */
+        .card-pov {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 25px;
+            background: #fff;
+            transition: 0.3s;
+        }
+
+        .stat-box {
+            background-color: #000;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: var(--radius);
+            height: 100%;
+        }
+
+        .btn-pov {
+            background: var(--pov-black);
+            color: #fff;
+            border-radius: var(--radius);
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-pov:hover { background: #333; color: #fff; }
+
+        .form-control, .form-select {
+            border-radius: var(--radius);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--pov-gray);
+        }
+
+        .table { border-radius: var(--radius); overflow: hidden; }
+
+        /* Profile Section Design */
+        .profile-card-header {
+            background: var(--pov-gray);
+            padding: 40px;
+            border-radius: var(--radius);
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .bg-pov-subtle {
+            background-color: rgba(114, 47, 55, 0.1); /* Deep Plum Tint */
+        }
+
+        .text-pov {
+            color: #722f37; /* Deep Plum */
+        }
+
+        .border-pov {
+            border-color: #722f37 !important;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #111;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        #liveDateTime {
+            min-width: 200px; 
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums; 
+        }
+
+        .activity-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .activity-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        
+        .activity-item {
+            transition: background 0.2s ease;
+            border-radius: 8px;
+        }
+        
+        .activity-item:hover {
+            background-color: var(--pov-gray);
+        }
+        
+        .icon-box {
+            width: 42px;
+            height: 42px;
+            background-color: #f3f3f5;
+            color: var(--pov-black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .activity-label {
+            letter-spacing: 1.5px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .notification-item {
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background-color: var(--pov-gray) !important;
+        }
+
+        .unread-glow {
+            background-color: rgba(0, 0, 0, 0.02); 
+        }
+
+        .notification-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<nav id="sidebar">
+    <div class="brand-area"><a href="{% url 'index' %}" style="text-decoration: none; color: #000;"><i class="bi bi-intersect"> </i> POV MEDIA</a></div>
+    
+    <div class="sidebar-scroll">
+        <div class="nav-group-label text-muted px-4 mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">WORKSPACE</div>
+        <button onclick="switchView('dashboard')" class="nav-link active" id="link-dashboard">
+            <i class="bi bi-columns-gap"></i> Dashboard
+        </button>
+        <button onclick="switchView('blogs')" class="nav-link" id="link-blogs">
+            <i class="bi bi-file-earmark-richtext"></i> Blogs
+        </button>
+        <button onclick="switchView('categories')" class="nav-link" id="link-categories">
+            <i class="bi bi-tags"></i> Categories
+        </button>
+        <button onclick="switchView('subscribers')" class="nav-link" id="link-subscribers">
+            <i class="bi bi-person-check"></i> Subscribers
+        </button>
+
+        <div class="nav-group-label text-muted px-4 mt-4 mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">SYSTEM</div>
+        <button onclick="switchView('members')" class="nav-link" id="link-members">
+            <i class="bi bi-people"></i> Members
+        </button>
+        <button onclick="switchView('profile')" class="nav-link" id="link-profile">
+            <i class="bi bi-person-gear"></i> Account
+        </button>
+    </div>
+
+    <div class="sidebar-footer">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="nav-link text-danger p-2 rounded-3">
+            <i class="bi bi-box-arrow-left"></i> Logout
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="nav-link text-danger p-2 rounded-3">
+            <i class="bi bi-box-arrow-right"></i> Login
+        </a>
+        {% endif %}
+    </div>
+    
+</nav>
+
+<div id="main-wrapper">
+    <header class="top-nav d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <button class="btn d-lg-none me-2" id="menu-toggle"><i class="bi bi-list fs-4"></i></button>
+            <!-- Date and Time -->
+            <div class="d-flex align-items-center gap-4 py-2">
+                <div class="d-flex align-items-center">
+                    <div class="bg-light rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                        <i class="bi bi-calendar3 text-dark fs-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px; font-size: 0.65rem;">Date</p>
+                        <h6 class="fw-bold mb-0" style="font-size: 0.95rem;">{% now "F j, Y" %}</h6>
+                    </div>
+                </div>
+            
+                <div style="width: 1px; height: 35px; background-color: var(--border-color);"></div>
+            
+                <div class="d-flex align-items-center">
+                    <div class="bg-light rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                        <i class="bi bi-clock text-dark fs-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted small text-uppercase fw-bold mb-0" style="letter-spacing: 1px; font-size: 0.65rem;">Server Time</p>
+                        <h6 class="fw-bold mb-0" style="font-size: 0.95rem;">{% now "h:i A" %}</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <div class="top-bar d-flex align-items-center justify-content-between">
+        <!-- Notification -->
+        <div class="dropdown me-3">
+            <button class="btn position-relative border-0 bg-transparent p-0" data-bs-toggle="dropdown">
+                <div class="bg-light rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                    <i class="bi bi-bell fs-5 text-muted"></i>
+                </div>
+                {% if unread_notifications_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.6rem; margin-left: -10px; margin-top: 5px;">
+                        {{ unread_notifications_count }}
+                    </span>
+                {% endif %}
+            </button>
+        
+            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0 mt-3" style="width: 340px; border-radius: 16px; overflow: hidden;">
+                <div class="px-3 py-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                    {% if unread_notifications_count > 0 %}
+                        <span class="badge bg-pov-subtle text-pov rounded-pill" style="font-size: 0.7rem;">{{ unread_notifications_count }} New</span>
+                    {% endif %}
+                </div>
+            
+                <div class="notification-list" style="max-height: 380px; overflow-y: auto; background-color: #fff;">
+                    {% for note in notifications %}
+                        <div class="p-3 border-bottom d-flex align-items-start position-relative notification-item {% if not note.is_read %}unread-glow{% endif %}">
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 40px; height: 40px;">
+                                <i class="bi bi-chat-dots text-dark"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <a href="{% url 'notification_redirect' note.id %}" class="mb-1 text-dark" style="font-size: 0.85rem; line-height: 1.4; text-decoration: none;">
+                                    {{ note.message }}
+                                </a>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted" style="font-size: 0.7rem;">{{ note.created_at|timesince }} ago</span>
+                                    {% if not note.is_read %}
+                                        <span class="bg-primary rounded-circle" style="width: 6px; height: 6px; display: inline-block;"></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="p-5 text-center">
+                            <i class="bi bi-bell-slash text-muted fs-2"></i>
+                            <p class="text-muted small mt-2">All caught up!</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="p-2 border-top bg-light">
+                    <a href="{% url 'mark_all_read' %}" class="btn btn-sm w-100 text-dark fw-bold" style="font-size: 0.75rem;">Mark all as read</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Profile -->
+        <div class="d-flex align-items-center gap-3 profile-group" onclick="switchView('profile')">
+            <div class="text-end d-none d-sm-block">
+                <p class="mb-0 fw-bold small" style="line-height: 1;">{{user.first_name}} {{user.last_name}}</p>
+                <span class="text-muted" style="font-size: 0.7rem;">{{user.username}}</span>
+            </div>
+            <div class="avatar-circle">
+                  {{ request.user.first_name|slice:":1"|upper }}
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <div class="page-body">
+        <section id="view-dashboard">    
+            <div class="container mb-4">
+                <h3 style="font-family: 'Inter', sans-serif; font-weight: bold;">Welcome back, {{ user.first_name }} {{ user.last_name }}!</h3>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="row g-4">
+                <div class="col-md-3"><div class="stat-box"><h6>Total Blogs</h6><h3>{{blog_count}}</h3></div></div>
+                <div class="col-md-3"><div class="stat-box"><h6>Categories</h6><h3>{{category_count}}</h3></div></div>
+                <div class="col-md-3"><div class="stat-box"><h6>Subscribers</h6><h3>{{user_count}}</h3></div></div>
+                <div class="col-md-3"><div class="stat-box"><h6>Reactions</h6><h3>{{reaction_count}}</h3></div></div>
+            </div>
+            
+            <!-- Recent Progress -->
+            <div class="mt-5 activity-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="activity-label text-uppercase text-muted mb-0">Recent Progress</h5>
+                    <span class="badge bg-light text-dark fw-bold" style="font-size: 0.7rem;">{{ recent_activities|length }} Events</span>
+                </div>
+            
+                <div class="activity-feed">
+                    {% for activity in recent_activities %}
+                        <div class="activity-item d-flex justify-content-between align-items-center p-2 mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box me-3">
+                                    {% if activity.blog_body %}
+                                        <i class="bi bi-journal-text"></i>
+                                    {% elif activity.comment %}
+                                        <i class="bi bi-chat-square-quote"></i>
+                                    {% elif activity.type %}
+                                        <span style="font-size: 1rem;">
+                                            {% if activity.type == 'like' %}👍{% elif activity.type == 'love' %}❤️{% elif activity.type == 'wow' %}😮{% else %}✨{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <i class="bi bi-person-plus"></i>
+                                    {% endif %}
+                                </div>
+                            
+                                <div>
+                                    <h6 class="mb-0 fw-bold" style="font-size: 0.88rem; color: var(--pov-black);">
+                                        {% if activity.blog_body %}
+                                            Published <span class="text-muted fw-normal">"{{ activity.title|truncatechars:25 }}"</span>
+                                        {% elif activity.comment %}
+                                            Commented on <span class="text-muted fw-normal">"{{ activity.blog.title|truncatechars:20 }}"</span>
+                                        {% elif activity.type %}
+                                            Reacted to <span class="text-muted fw-normal">"{{ activity.blog.title|truncatechars:20 }}"</span>
+                                        {% else %}
+                                            Joined POV Media
+                                        {% endif %}
+                                    </h6>
+                                    <small class="text-muted" style="font-size: 0.72rem;">
+                                        by <strong>
+                                        {% if activity.author %}{{ activity.author.username }}{% elif activity.user %}{{ activity.user.username }}{% else %}{{ activity.username }}{% endif %}
+                                        </strong>
+                                    </small>
+                                </div>
+                            </div>
+                        
+                            <div class="text-end">
+                                <span class="text-muted fw-medium" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                    {% if activity.created_at %}
+                                        {{ activity.created_at|timesince }} ago
+                                    {% else %}
+                                        {{ activity.date_joined|timesince }} ago
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-stack text-muted fs-2"></i>
+                            <p class="text-muted small mt-2">No progress recorded yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Blogs -->
+       <section id="view-blogs" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Editorial Archive</h5>
+                <button class="btn btn-pov" data-bs-toggle="modal" data-bs-target="#blogCreateModal">+ Add New Article</button>
+            </div>
+
+            <div class="row g-4">
+                {% for blog in blogs %}
+                <div class="col-md-4">
+                    <div class="card-pov p-3 h-100 d-flex flex-column">
+                        <img src="{{ blog.image.url }}" class="rounded mb-3 w-100" style="height: 180px; object-fit: cover;">
+                        <h6 class="fw-bold mb-1">{{ blog.title }}</h6>
+                        <div class="text-muted small mb-2">By <b>{{ blog.author.username }}</b> | {{ blog.updated_at|date:"M d, Y" }}</div>
+
+                        <div class="mb-3 mt-auto">
+                            <span class="badge bg-dark text-white">{{ blog.category.category_name }}</span>
+                            <span class="badge {% if blog.status == 'Published' %}bg-success-subtle text-success{% else %}bg-light text-dark{% endif %} border">
+                                {{ blog.status }}
+                            </span>
+                            {% if blog.is_featured %}
+                            <span class="badge bg-warning-subtle text-warning border">Featured</span>
+                            {% endif %}
+                        </div>
+                    
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-dark flex-grow-1 rounded-3" data-bs-toggle="modal" data-bs-target="#updateBlog{{ blog.id }}">
+                                Update
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteBlog{{ blog.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Category -->
+        <section id="view-categories" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Category Management</h5>
+                <button class="btn btn-pov" data-bs-toggle="modal" data-bs-target="#catModal">+ Create Category</button>
+            </div>
+            <div class="card-pov p-0 overflow-hidden">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4">No</th>
+                            <th class="px-4">Name</th>
+                            <th class="px-4">Posts</th>
+                            <th class="px-4">Created Time</th>
+                            <th class="px-4">Updated Time</th>
+                            <th class="text-end px-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categories %}
+                        <tr class="small">
+                            <td class="fw-bold px-4">{{ forloop.counter }}</td>
+                            <td class="px-4">{{ cat.category_name }}</td>
+                            <td class="px-4">{{ cat.blog_set.all.count }}</td>
+                            <td class="px-4">{{ cat.created_at|date:"M d, Y" }}</td>
+                            <td class="px-4">{{ cat.updated_at|date:"M d, Y" }}</td>
+                            <td class="text-end px-4">
+                                <button class="btn btn-sm btn-light rounded-3 me-2" data-bs-toggle="modal" data-bs-target="#updateCat{{ cat.id }}">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteCat{{ cat.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Subscribers -->
+         <section id="view-subscribers" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h5 class="fw-bold mb-0">Registered Subscribers</h5>
+                    <p class="text-muted small mb-0">Total accounts: {{ subscribers.count }}</p>
+                </div>
+            </div>
+        
+            <div class="card-pov border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="small text-uppercase text-muted">
+                                <th class="px-4 py-3">No</th>
+                                <th class="px-4 py-3">User</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Joined Date</th>
+                                <th class="px-4 py-3 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subscribers %}
+                            <tr class="small">
+                                <td class="fw-bold px-4">{{ forloop.counter }}</td>
+                                <td class="px-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            {% if sub.profile.image %}
+                                                <img src="{{ sub.profile.image.url }}" 
+                                                     alt="{{ sub.username }}" 
+                                                     class="rounded-circle object-fit-cover" 
+                                                     style="width: 35px; height: 35px; border: 1px solid var(--border-color);">
+                                            {% else %}
+                                                <div class="avatar-circle bg-light text-dark border d-flex align-items-center justify-content-center fw-bold" 
+                                                     style="width: 35px; height: 35px; border-radius: 50%; font-size: 14px;">
+                                                    {{ sub.username|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div>
+                                            <span class="d-block fw-semibold">{{ sub.username }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 text-muted">{{ sub.email }}</td>
+                                <td class="px-4">
+                                    {% if sub.is_active %}
+                                        <span class="badge bg-success-subtle text-success border border-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 text-muted">{{ sub.date_joined|date:"M d, Y" }}</td>
+                                <td class="px-4 text-end">
+                                    {% if request.user.is_superuser %}
+                                        <button class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteSub{{ sub.id }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted small" title="Only admins can manage subscribers">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">No registered subscribers yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Member -->
+        <section id="view-members" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Staff Directory</h5>
+            {% if perms.auth.add_user %}
+            <button class="btn btn-pov" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                <i class="bi bi-person-plus me-1"></i> Add Member
+            </button>
+            {% endif %}
+            </div>
+    
+    <div class="card-pov border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="small text-uppercase text-muted">
+                        <th class="px-4 py-3">No</th>
+                        <th class="px-4 py-3">Member</th>
+                        <th class="px-4 py-3">Name</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Role</th>
+                        <th class="px-4 py-3">Joined Date</th>
+                        {% if user.is_superuser %}
+                        <th class="px-4 py-3 text-end">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in users %}
+                    <tr class="small">
+                        <td class="fw-bold px-4">{{ forloop.counter }}</td>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                    <i class="bi bi-person text-secondary"></i>
+                                </div>
+                                <span>{{ staff.username }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4"><span>{{ staff.first_name }} {{ staff.last_name }}</span></td>
+                        <td class="px-4 text-muted">{{ staff.email }}</td>
+                        <td class="px-4">
+                            {% if staff.is_superuser %}
+                                <span class="badge bg-pov-subtle text-pov border border-pov">Admin</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark border">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 text-muted">{{ staff.date_joined|date:"M d, Y" }}</td>
+                        
+                        {% if user.is_superuser %}
+                        <td class="px-4 text-end">
+                            <button class="btn btn-sm btn-light rounded-3" data-bs-toggle="modal" data-bs-target="#editStaff{{ staff.id }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteStaff{{ staff.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+        <!-- Account Profile -->
+       <section id="view-profile" class="d-none">
+
+        <!-- Header -->
+        <div class="mb-4">
+            <h4 class="fw-bold">Account Overview</h4>
+            <p class="text-muted small">Manage and review your staff account details</p>
+        </div>
+    
+        <div class="row g-4">
+        
+            <!-- LEFT PROFILE CARD -->
+            <div class="col-lg-4">
+                <div class="card-pov text-center p-4 h-100">
+                
+                    <!-- Avatar -->
+                    <div class="mx-auto mb-3"
+                         style="width:90px;height:90px;border-radius:50%;background:#111;color:#fff;
+                         display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;">
+                        {{ user.first_name|slice:":1"|upper }}
+                    </div>
+                
+                    <!-- Name -->
+                    <h5 class="fw-bold mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                    <p class="text-muted small mb-2">@{{ user.username }}</p>
+                
+                    <!-- Role Badge -->
+                    <span class="badge px-3 py-2 rounded-pill
+                        {% if user.is_superuser %}
+                            bg-dark text-white
+                        {% else %}
+                            bg-light text-dark border
+                        {% endif %}">
+                        {% if user.is_superuser %}System Administrator{% else %}Staff Member{% endif %}
+                    </span>
+                
+                    <!-- Divider -->
+                    <hr class="my-4">
+                
+                    <!-- Meta Info -->
+                    <div class="text-start small">
+                        <p class="mb-2">
+                            <i class="bi bi-envelope me-2 text-muted"></i>
+                            {{ user.email }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-calendar me-2 text-muted"></i>
+                            Joined {{ user.date_joined|date:"M d, Y" }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-clock-history me-2 text-muted"></i>
+                            Last login {{ user.last_login|date:"M d, Y | H:i" }}
+                        </p>
+                    </div>
+                
+                </div>
+            </div>
+        
+            <!-- RIGHT DETAILS -->
+            <div class="col-lg-8">
+                <div class="card-pov p-4 h-100">
+                
+                    <h6 class="fw-bold mb-4">Account Details</h6>
+                
+                    <div class="row g-4">
+                    
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100">
+                                <p class="text-muted small mb-1">Official Email</p>
+                                <h6 class="fw-semibold mb-0">{{ user.email }}</h6>
+                            </div>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100">
+                                <p class="text-muted small mb-1">Access Level</p>
+                                <h6 class="fw-semibold mb-0">
+                                    {% if user.is_staff %}
+                                        Staff Portal Access Granted
+                                    {% else %}
+                                        Standard Access
+                                    {% endif %}
+                                </h6>
+                            </div>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100">
+                                <p class="text-muted small mb-1">Date Joined</p>
+                                <h6 class="fw-semibold mb-0">
+                                    {{ user.date_joined|date:"F d, Y" }}
+                                </h6>
+                            </div>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100">
+                                <p class="text-muted small mb-1">Last System Sync</p>
+                                <h6 class="fw-semibold mb-0">
+                                    {{ user.last_login|date:"M d, Y | H:i" }}
+                                </h6>
+                            </div>
+                        </div>
+                    
+                    </div>
+                
+                    <!-- Notice -->
+                    <div class="mt-4 p-3 rounded-3 bg-light border small text-muted">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Account changes are restricted. Contact administrator for updates.
+                    </div>
+                
+                </div>
+            </div>
+        
+        </div>
+
+    </section>
+
+    </div>
+</div>
+
+        <!-- Blogs Create -->
+        <div class="modal fade" id="blogCreateModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <form action="{% url 'create_blog' %}" method="POST" enctype="multipart/form-data" class="modal-content border-0" style="border-radius: var(--radius);">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 px-4 pt-4">
+                        <h5 class="fw-bold">Create New Article</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="small fw-bold mb-1">Title</label>
+                                <input type="text" name="title" class="form-control" placeholder="Enter post title" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="small fw-bold mb-1">Featured Image</label>
+                                <input type="file" name="image" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold mb-1">Category</label>
+                                <select name="category" class="form-select" required>
+                                    <option value="" selected disabled>Select Category</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.category_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small fw-bold mb-1">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="Draft">Draft</option>
+                                    <option value="Published">Published</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="small fw-bold mb-1">Short Description</label>
+                                <textarea name="description" class="form-control" rows="2" placeholder="Brief summary..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="small fw-bold mb-1">Blog Body</label>
+                                <textarea name="blog_body" class="form-control" rows="6" placeholder="Write your content here..."></textarea>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_featured" id="flexSwitchCheckDefault">
+                                    <label class="form-check-label small fw-bold" for="flexSwitchCheckDefault">Mark as Featured</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="submit" class="btn btn-pov w-100">Create Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Blogs Update -->
+        {% for blog in blogs %}
+        <div class="modal fade" id="updateBlog{{ blog.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <form action="{% url 'edit_blog' blog.id %}" method="POST" enctype="multipart/form-data" class="modal-content border-0" style="border-radius: var(--radius);">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 px-4 pt-4">
+                        <h5 class="fw-bold">Edit Article</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12"><label class="small fw-bold mb-1">Title</label>
+                                <input type="text" name="title" value="{{ blog.title }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-12"><label class="small fw-bold mb-1">Update Image</label>
+                                <input type="file" name="image" class="form-control">
+                            </div>
+                            <div class="col-md-6"><label class="small fw-bold mb-1">Category</label>
+                                <select name="category" class="form-select">
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if cat.id == blog.category.id %}selected{% endif %}>{{ cat.category_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6"><label class="small fw-bold mb-1">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="Draft" {% if blog.status == 'Draft' %}selected{% endif %}>Draft</option>
+                                    <option value="Published" {% if blog.status == 'Published' %}selected{% endif %}>Published</option>
+                                </select>
+                            </div>
+                            <div class="col-12"><label class="small fw-bold mb-1">Short Description</label>
+                                <textarea name="description" class="form-control" rows="2">{{ blog.description }}</textarea>
+                            </div>
+                            <div class="col-12"><label class="small fw-bold mb-1">Blog Body</label>
+                                <textarea name="blog_body" class="form-control" rows="6">{{ blog.blog_body }}</textarea>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_featured" id="feat{{blog.id}}" {% if blog.is_featured %}checked{% endif %}>
+                                    <label class="form-check-label small fw-bold" for="feat{{blog.id}}">Mark as Featured</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0"><button type="submit" class="btn btn-pov w-100">Save Changes</button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Blog Delete -->
+        <div class="modal fade" id="deleteBlog{{ blog.id }}" tabindex="-1">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content border-0 p-4 text-center" style="border-radius: var(--radius);">
+                    <h6 class="fw-bold mb-2">Delete Article?</h6>
+                    <p class="text-muted small">Confirm removal of <b>{{ blog.title }}</b>.</p>
+                    <form action="{% url 'delete_blog' blog.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger flex-grow-1">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- === Category Form === -->
+        <!-- Category Create -->
+        <div class="modal fade" id="catModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="{% url 'create_category' %}" method="POST" class="modal-content border-0" style="border-radius: var(--radius);">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 px-4 pt-4">
+                        <h5 class="fw-bold" id="catModalTitle">Category</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4"><input type="hidden" id="cat-id"><label class="small fw-bold">Category Name</label><input type="text" name="name" id="cat-name-input" class="form-control" required></div>
+                    <div class="modal-footer border-0 p-4 pt-0"><button type="submit" class="btn btn-pov w-100">Save Category</button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Category Update -->
+        {% for cat in categories %}
+        <div class="modal fade" id="updateCat{{ cat.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="{% url 'edit_category' cat.id %}" method="POST" class="modal-content border-0" style="border-radius: var(--radius);">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 px-4 pt-4">
+                        <h5 class="fw-bold">Update Category</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <label class="small fw-bold mb-1">Category Name</label>
+                        <input type="text" name="name" value="{{ cat.category_name }}" class="form-control" required>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="submit" class="btn btn-pov w-100">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Category Delete -->
+        {% for cat in categories %}
+        <div class="modal fade" id="deleteCat{{ cat.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content border-0 p-4 text-center" style="border-radius: var(--radius);">
+                    <h6 class="fw-bold mb-2">Confirm Delete</h6>
+                    <p class="text-muted small">Are you sure you want to delete <b>{{ cat.category_name }}</b>?</p>
+                    <form action="{% url 'delete_category' cat.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">No</button>
+                            <button type="submit" class="btn btn-danger flex-grow-1">Yes, Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Subscriber Delete -->
+        {% for sub in subscribers %}
+            <div class="modal fade" id="deleteSub{{ sub.id }}" tabindex="-1">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content border-0 p-4 text-center" style="border-radius: var(--radius);">
+                        <div class="text-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Delete Account?</h6>
+                        <p class="text-muted small">
+                            Are you sure you want to delete <b>{{ sub.username }}</b>? This action cannot be undone.
+                        </p>
+                        <form action="{% url 'delete_subscriber' sub.id %}" method="POST">
+                            {% csrf_token %}
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger flex-grow-1">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Member Create -->
+         <div class="modal fade" id="addMemberModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow" style="border-radius: var(--radius);">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="fw-bold">New Staff</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{% url 'create_staff' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    {{ form | crispy }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-dark px-4">Create Member</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Update -->
+        {% if user.is_superuser %}
+        
+            {% for item in users_with_forms %}
+                {% with staff=item.user form=item.form %}
+        
+                <!-- EDIT MODAL -->
+                <div class="modal fade" id="editStaff{{ staff.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <form action="{% url 'edit_staff' staff.id %}" method="POST" class="modal-content border-0" style="border-radius: var(--radius);">
+                            {% csrf_token %}
+                        
+                            <div class="modal-header border-0 px-4 pt-4">
+                                <h5 class="fw-bold">Edit Staff Account</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                        
+                            <div class="modal-body">
+                                {{ form | crispy }}
+                            </div>
+                        
+                            <div class="modal-footer border-0 p-4 pt-0">
+                                <button type="submit" class="btn btn-pov w-100">Update Account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            
+                <!-- Member Delete -->
+                <div class="modal fade" id="deleteStaff{{ staff.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                        <div class="modal-content border-0 p-4 text-center" style="border-radius: var(--radius);">
+                            <h6 class="fw-bold mb-2">Remove Staff?</h6>
+                            <p class="text-muted small">
+                                Delete <b>{{ staff.username }}</b>?
+                            </p>
+                        
+                            <form action="{% url 'delete_staff' staff.id %}" method="POST">
+                                {% csrf_token %}
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger flex-grow-1">Confirm</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            
+                {% endwith %}
+            {% endfor %}
+            
+        {% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{{ labels_json|json_script:"labels-data" }}
+{{ counts_json|json_script:"counts-data" }}
+<script>
+    // Navigation
+    function switchView(view) {
+    ['dashboard', 'blogs', 'categories', 'members', 'profile', 'subscribers'].forEach(s => {
+        const viewEl = document.getElementById(`view-${s}`);
+        const linkEl = document.getElementById(`link-${s}`);
+        
+        if(viewEl) viewEl.classList.add('d-none');
+        if(linkEl) linkEl.classList.remove('active');
+    });
+    
+    document.getElementById(`view-${view}`).classList.remove('d-none');
+    document.getElementById(`link-${view}`).classList.add('active');
+    }
+
+    // Modal Objects
+    const blogMdl = new bootstrap.Modal(document.getElementById('blogModal'));
+    const catMdl = new bootstrap.Modal(document.getElementById('catModal'));
+    const delMdl = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const memberMdl = new bootstrap.Modal(document.getElementById('addMemberModal'));
+
+    document.getElementById('menu-toggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
+    
+    // Chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const platformLabels = JSON.parse(document.getElementById('labels-data').textContent);
+        const platformData = JSON.parse(document.getElementById('counts-data').textContent);
+
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: platformLabels,
+                    datasets: [{
+                        label: 'Total Articles',
+                        data: platformData,
+                        borderColor: '#111111',
+                        backgroundColor: 'rgba(17, 17, 17, 0.05)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+    
+</script>
+</body>
+</html>

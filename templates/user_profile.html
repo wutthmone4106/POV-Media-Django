@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<style>
+    .form-control[readonly] {
+        background-color: transparent !important;
+        border-color: #ededed; 
+        color: #6c757d; 
+        font-weight: 400;
+        cursor: default;
+    }
+    .form-control:focus {
+        border-color: #111;
+        box-shadow: none;
+    }
+</style>
+
+<div class="container py-5" style="font-family: 'Inter', sans-serif;">
+    <div class="row justify-content-center">
+        <div class="col-12 text-center mb-2">
+            <h3 class="text-uppercase fw-bold" style="letter-spacing: 2px;">Account Settings</h3>
+            <p class="text-muted">View and manage your official profile details.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="row g-4" id="profile-form">
+            {% csrf_token %}
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm p-4 text-center mb-4" style="border-radius: 20px;">
+                    <div class="position-relative d-inline-block mx-auto mb-3">
+                        <img id="profile-img-preview" 
+                             src="{{ user.profile.image.url }}" 
+                             class="rounded-circle shadow-sm" 
+                             style="width: 140px; height: 140px; object-fit: cover; border: 4px solid #fff;">
+                        
+                        <label for="id_image" class="btn btn-dark btn-sm position-absolute bottom-0 end-0 rounded-circle shadow edit-element d-none">
+                            <i class="bi bi-camera-fill"></i>
+                        </label>
+                        <input type="file" name="image" id="id_image" class="d-none" accept="image/*" onchange="previewImage(this)">
+                    </div>
+                    
+                    <h5 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted small mb-3">Member since {{ user.date_joined|date:"M Y" }}</p>
+                    
+                    <div class="pt-3 border-top">
+                        <p class="x-small text-muted mb-2 text-uppercase fw-bold">Security</p>
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-shield-lock me-2"></i>Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm p-4" style="border-radius: 20px;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold mb-0 text-uppercase small text-muted">Primary Details</h6>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill read-element" id="enable-edit-btn">
+                            <i class="bi bi-pencil-square me-1"></i>Edit Profile
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill edit-element d-none" id="cancel-edit-btn">
+                            Cancel
+                        </button>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label small text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">First Name</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" readonly required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">Last Name</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" readonly required>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Username</label>
+                            <input type="text" name="username" value="{{ user.username }}" class="form-control rounded-3" readonly required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Email Address</label>
+                            <input type="email" name="email" value="{{ user.email }}" class="form-control rounded-3" readonly required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Location</label>
+                            <input type="text" name="location" value="{{ user.profile.location }}" placeholder="e.g. New York, USA" class="form-control rounded-3" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Short Bio</label>
+                            <input type="text" name="bio" class="form-control" placeholder="Tell us about yourself..." value="{{ user.profile.bio }}" readonly required>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 edit-element d-none">
+                        <button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3 shadow-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{% url 'update_profile_password' %}" method="POST" class="modal-content border-0 p-4" style="border-radius: var(--radius);">
+            {% csrf_token %}
+            
+            <div class="text-center mb-4">
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-shield-lock-fill text-dark fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-1" id="changePasswordModalLabel">Security Verification</h5>
+                <p class="text-muted small">Update your system credentials for POV Media.</p>
+            </div>
+
+            <div class="modal-body p-0">
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1">Current Password</label>
+                    <input type="password" name="current_password" class="form-control" required placeholder="••••••••">
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1">New Password</label>
+                    <input type="password" name="new_password" class="form-control" required placeholder="Minimum 8 characters">
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1">Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-control" required placeholder="Repeat new password">
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-dark flex-grow-1">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Live Image Preview
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-img-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Toggle Read-Only/Edit State
+    const profileForm = document.getElementById('profile-form');
+    const enableEditBtn = document.getElementById('enable-edit-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    
+    // Select all elements marked for Edit Mode or Read-Only Mode
+    const editElements = document.querySelectorAll('.edit-element');
+    const readElements = document.querySelectorAll('.read-element');
+    // Select the inputs we want to toggle
+    const toggleInputs = profileForm.querySelectorAll('input:not([type="file"]):not([name="csrfmiddlewaretoken"])');
+
+    enableEditBtn.addEventListener('click', () => {
+        // Show edit elements (camera btn, cancel btn, save btn)
+        editElements.forEach(el => el.classList.remove('d-none'));
+        // Hide read elements (edit btn)
+        readElements.forEach(el => el.classList.add('d-none'));
+        // Make inputs editable
+        toggleInputs.forEach(input => input.removeAttribute('readonly'));
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+        // Reverse everything
+        editElements.forEach(el => el.classList.add('d-none'));
+        readElements.forEach(el => el.classList.remove('d-none'));
+        toggleInputs.forEach(input => input.setAttribute('readonly', true));
+        // Optional: Reload page to reset form values if they were changed
+        location.reload(); 
+    });
+</script>
+{% endblock %}

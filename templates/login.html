@@ -1,0 +1,134 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | POV Media</title>
+    <!-- Link to Bootstrap -->
+    <link href="{% static 'css/bootstrap.css' %}" type="text/css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #000000;
+            --heading-font: 'Montserrat', sans-serif;
+            --body-font: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f1f0f0;
+            font-family: var(--body-font);
+        }
+
+        h2 { 
+            font-family: var(--heading-font); 
+        }
+
+        .auth-card {
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #e1e1e1;
+        }
+        .btn-premium {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .btn-premium:hover {
+            background-color: #fff;
+            color: #000 !important;
+            border: 1px solid #000;
+        }
+
+        /* ===== Tablet (768px and below) ===== */
+        @media (max-width: 768px) {
+        .auth-card {
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            padding: 20px;
+        }
+    }
+
+        /* ===== Mobile (600px and below) ===== */
+        @media (max-width: 600px) {
+        .auth-card {
+            padding: 25px 20px;
+            border-radius: 14px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            letter-spacing: 1.5px;
+        }
+
+        .form-control {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .btn-premium {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .text-center p,
+        .text-center a {
+            font-size: 0.8rem;
+        }
+    }
+    </style>
+</head>
+<body>
+<div class="container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+        <div class="auth-card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <h2 class="text-uppercase text-dark" style="letter-spacing: 3px;">Welcome Back!</h2>
+                <p class="text-muted small fw-light">Please enter your details</p>
+            </div>
+
+            <form action="{% url 'login' %}" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">Username</label>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label small text-uppercase fw-bold text-muted" style="font-size: 0.7rem;">Password</label>
+                    </div>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-premium w-100 text-uppercase">Login</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="small text-muted">New here? <a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold">Create Account</a></p>
+                <a href="{% url 'index' %}" class="text-muted small text-decoration-none">← Return Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

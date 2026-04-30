@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block main %}
+<style>
+.reaction-pill-container {
+    transition: all 0.3s ease;
+}
+
+.reaction-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.reaction-link:hover {
+    transform: scale(1.2); /* Makes the emoji pop out on hover */
+}
+
+.emoji-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.reaction-count {
+    font-size: 0.7rem;
+    font-weight: bold;
+    display: block;
+}
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+            <article>
+                <header class="mb-5 text-center">
+                    <strong class="text-primary text-uppercase small mb-2 d-block" style="letter-spacing: 2px;">
+                        {{ single_blog.category }}
+                    </strong>
+                    <h1 class="blog-post-title mb-3">{{ single_blog.title }}</h1>
+                    <div class="text-muted fst-italic">
+                        Published {{ single_blog.created_at|date:"F d, Y" }} —
+                        By <span class="text-dark fw-bold">{{ single_blog.author }}</span>
+                    </div>
+                </header>
+
+                <figure class="mb-5">
+                    <img class="img-fluid rounded w-100" src="{{ single_blog.image.url }}" style="max-height: 500px; object-fit: cover;">
+                </figure>
+
+                <section class="blog-content mb-5" style="font-family: Georgia, serif; line-height: 1.8; font-size: 1.15rem;">
+                    <p class="lead fw-bold mb-4">{{ single_blog.description }}</p>
+                    <div>{{ single_blog.blog_body|linebreaks }}</div>
+                </section>
+
+                <!-- Reaction -->
+                <div class="d-flex justify-content-center mb-5">
+                    <div class="reaction-container border p-2 d-flex gap-3 bg-light rounded-pill shadow-sm">
+                        {% for type, label, emoji, color in reactions_data %}
+                        <div class="reaction-item text-center px-2">
+                            <a href="{% url 'react_to_blog' single_blog.id type %}" 
+                               class="text-decoration-none" 
+                               style="font-size: 1.5rem; display: block; transition: transform 0.2s;"
+                               onmouseover="this.style.transform='scale(1.3)'" 
+                               onmouseout="this.style.transform='scale(1)'">
+                                {{ emoji }}
+                            </a>
+                            <span class="badge rounded-pill bg-white text-dark border small" style="font-size: 0.7rem;">
+                                {{ reaction_counts|get_item:type|default:0 }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Comment -->
+                <div class="comments-section pt-4">
+                    <h4 class="fw-bold mb-4">Comments ({{ comment_count }})</h4>
+
+                    {% for comment in comments %}
+                    <div class="d-flex mb-4 pb-3 border-bottom">
+                        <!-- AVATAR -->
+                        <div class="me-3">
+                            {% if comment.user.profile.image and comment.user.profile.image.name != 'default.jpg' %}
+                                <img src="{{ comment.user.profile.image.url }}"
+                                     class="rounded-circle"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 40px; height: 40px; background:#111; color:#fff; font-weight:bold;">
+                                    {{ comment.user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold">{{ comment.user.username }}</span>
+                                <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                            </div>
+
+                            <p class="text-dark mb-2" id="comment-text-{{ comment.id }}">{{ comment.comment }}</p>
+
+                            <div id="edit-form-{{ comment.id }}" class="d-none mb-3">
+                                <form action="{% url 'edit_comment' comment.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <textarea name="comment" class="form-control mb-2" rows="2">{{ comment.comment }}</textarea>
+                                    <button type="submit" class="btn btn-sm btn-dark">Save</button>
+                                    <button type="button" class="btn btn-sm btn-light" onclick="toggleEdit('{{ comment.id }}')">Cancel</button>
+                                </form>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-3">
+                                {% if request.user == comment.user %}
+                                    <a href="javascript:void(0)" class="text-muted small text-decoration-none" onclick="toggleEdit('{{ comment.id }}')">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                    <a href="javascript:void(0)" class="text-danger small text-decoration-none" data-bs-toggle="modal" data-bs-target="#deleteModal{{ comment.id }}">
+                                        <i class="bi bi-trash3"></i> Delete
+                                    </a>
+
+                                    <!-- Delete Comment -->
+                                    <div class="modal fade" id="deleteModal{{ comment.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow">
+                                                <div class="modal-body text-center py-4">
+                                                    <h6>Delete this comment?</h6>
+                                                    <div class="d-flex justify-content-center align-items-center gap-2 mt-3">
+                                                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                        <form action="{% url 'delete_comment' comment.id %}" method="POST">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="ms-auto d-flex gap-3">
+                                    <a href="{% url 'like_comment' comment.id %}" class="text-decoration-none small fw-bold text-dark d-flex align-items-center gap-1">
+                                        {% if request.user in comment.likes.all %}
+                                            <i class="bi bi-heart-fill text-danger"></i> 
+                                            <span class="text-danger">Liked ({{ comment.likes.count }})</span>
+                                        {% else %}
+                                            <i class="bi bi-heart"></i> 
+                                            <span>Like ({{ comment.likes.count }})</span>
+                                        {% endif %}
+                                    </a>
+                                    <a href="javascript:void(0)" class="text-decoration-none small fw-bold text-dark" onclick="toggleReply('{{ comment.id }}')">
+                                        <i class="bi bi-chat-left-text"></i> Reply
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div id="reply-form-{{ comment.id }}" class="d-none mt-3">
+                                <form action="" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                    <textarea name="comment" class="form-control mb-2" rows="2" placeholder="Write a reply..."></textarea>
+                                    <button type="submit" class="btn btn-dark btn-sm">Reply</button>
+                                </form>
+                            </div>
+
+                            {% for reply in comment.replies.all %}
+                            <div class="mt-3 ms-4 border-start ps-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">{{ reply.user.username }}</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ reply.created_at|timesince }} ago</small>
+                                </div>
+                                <p class="small mb-1" id="comment-text-{{ reply.id }}">{{ reply.comment }}</p>
+
+                                <div id="edit-form-{{ reply.id }}" class="d-none mb-2">
+                                    <form action="{% url 'edit_comment' reply.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <textarea name="comment" class="form-control form-control-sm mb-1">{{ reply.comment }}</textarea>
+                                        <button type="submit" class="btn btn-dark btn-sm py-0">Save</button>
+                                        <button type="button" class="btn btn-light btn-sm py-0" onclick="toggleEdit('{{ reply.id }}')">Cancel</button>
+                                    </form>
+                                </div>
+
+                                {% if request.user == reply.user %}
+                                <div class="d-flex gap-2">
+                                    <a href="javascript:void(0)" class="text-muted" style="font-size: 0.75rem;" onclick="toggleEdit('{{ reply.id }}')">Edit</a>
+                                    <a href="javascript:void(0)" class="text-danger" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#deleteModal{{ reply.id }}">Delete</a>
+                                </div>
+                                
+                                <div class="modal fade" id="deleteModal{{ reply.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-body text-center py-3">
+                                                <p class="small mb-3">Delete this reply?</p>
+                                                <form action="{% url 'delete_comment' reply.id %}" method="POST">
+                                                    {% csrf_token %}
+                                                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">No</button>
+                                                    <button type="submit" class="btn btn-danger btn-sm">Yes, Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No comments yet.</p>
+                    {% endfor %}
+
+                    <div class="mt-5 p-4 bg-light rounded shadow-sm">
+                        <h5 class="fw-bold mb-3">Leave a Comment</h5>
+                        {% if user.is_authenticated %}
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <textarea name="comment" class="form-control mb-3" rows="4" placeholder="Share your thoughts..."></textarea>
+                            <button type="submit" class="btn btn-dark px-4">Post Comment</button>
+                        </form>
+                        {% else %}
+                        <p>Please <a href="{% url 'login' %}">login</a> to comment.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="col-lg-3 offset-lg-1">
+            <div class="position-sticky" style="top: 2rem;">
+
+                <div class="mb-5">
+                    <h5 class="fw-bold text-primary border-bottom pb-2 mb-3" style="font-family: 'Playfair Display', serif;">Categories</h5>
+                    <ul class="list-unstyled">
+                        {% for cat in categories %}
+                        <li class="mb-2">
+                            <a href="{% url 'posts_by_category' cat.id %}" class="text-decoration-none text-muted small text-uppercase fw-bold" style="font-family: 'Poppins', sans-serif;">
+                                {{ cat.category_name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mb-5">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3" style="font-family: 'Playfair Display', serif;">Related in {{ single_blog.category }}</h5>
+                    <div class="sidebar-posts">
+                        {% for related in related_posts %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{{ related.image.url }}" class="rounded" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ related.title }}">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <a href="{% url 'blogs' related.slug %}" class="text-decoration-none text-dark fw-bold small d-block" style="line-height: 1.2;">
+                                    {{ related.title|truncatechars:45 }}
+                                </a>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ related.created_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="small text-muted">No related posts yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            
+                <div class="mb-5">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3" style="font-family: 'Playfair Display', serif;">Latest Updates</h5>
+                    <div class="sidebar-posts">
+                        {% for recent in recent_blogs %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{{ recent.image.url }}" class="rounded" style="width: 120px; height: 100px; object-fit: cover;" alt="{{ recent.title }}">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <a href="{% url 'blogs' recent.slug %}" class="text-decoration-none text-dark fw-bold small d-block" style="line-height: 1.2;">
+                                    {{ recent.title|truncatechars:45 }}
+                                </a>
+                                <small class="text-muted" style="font-size: 0.75rem;">By {{ recent.author }} </small> <br>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ recent.created_at|date:"F d, Y" }} </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if social_links %}
+                <div class="mb-5">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3" style="font-family: 'Playfair Display', serif;">Follow Us</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for i in social_links %}
+                        <a href="{{ i.link }}" class="btn btn-sm btn-outline-dark py-1 px-3 small">{{ i.platform }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleEdit(id) {
+    const text = document.getElementById(`comment-text-${id}`);
+    const form = document.getElementById(`edit-form-${id}`);
+    text.classList.toggle('d-none');
+    form.classList.toggle('d-none');
+    if(!form.classList.contains('d-none')) {
+        const textarea = form.querySelector('textarea');
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+}
+
+function toggleReply(id) {
+    const replyForm = document.getElementById(`reply-form-${id}`);
+    replyForm.classList.toggle('d-none');
+}
+</script>
+
+{% endblock %}

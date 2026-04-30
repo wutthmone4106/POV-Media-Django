@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Point Of View | POV Media{% endblock %}
+
+{% block main %}
+  <style>
+    .pagination .page-item.active .page-link {
+        background-color: #000 !important;
+        border-color: #000 !important;
+        color: #fff !important;
+    }
+
+    .page-link:focus {
+        box-shadow: 0 0 0 0.25rem rgba(0, 0, 0, 0.25) !important;
+        color: #000 !important;
+    }
+
+    .page-link:hover {
+        color: #000 !important;
+        background-color: #e9ecef !important;
+    }
+  </style>
+
+    <!-- Main Featured Post Starts -->
+    {% for post in posts %}
+    {% if forloop.last %}
+      <div class="p-4 p-md-5 mb-4 text-white rounded bg-dark" style="background-image:url({{ post.image.url }}); background-blend-mode:overlay; background-size:cover;">
+
+        <div class="d-flex justify-content-center align-items-center">
+          <div class="col-md-8 px-0 text-center"> 
+            <h1 class="display-4 fst-italic">{{ post.title }}</h1>
+            <p class="lead my-3">{{ post.description }}</p>
+            <p class="lead mb-0"><a href="{% url 'blogs' post.slug %}" class="text-white fw-bold">Continue reading...</a></p>
+          </div>
+        </div>
+
+      </div>
+    {% endif %}
+    {% endfor %}
+    <!-- Main Featured Post Ends -->
+
+    <!-- Featured Posts Start -->
+    <h3 class="text-uppercase text-dark mb-3" style="letter-spacing: 2px; text-align: center;">Featured Posts</h3>
+    <div class="row mb-5 border-top pt-4">
+      {% for post in posts %}
+      {% if not forloop.last %}
+      <!-- Fix: col-12 for mobile, col-md-4 for 768px and up -->
+      <div class="col-12 col-md-4 mb-4">
+          <div class="h-100">
+              {% if post.image %}
+              <img src="{{ post.image.url }}" class="rounded mb-3 w-100" style="height: 180px; object-fit: cover;">
+              {% endif %}
+
+              <strong class="d-inline-block mb-1 text-primary text-uppercase x-small">{{ post.category.category_name }}</strong>
+
+              <h5 class="fw-bold mb-2">
+                  <a href="{% url 'blogs' post.slug %}" style="text-decoration: none;" class="text-dark">
+                      {{ post.title }}
+                  </a>
+              </h5>
+
+              <div class="text-muted small">By <b>{{ post.author }}</b> | {{ post.created_at|date:"M d, Y" }}</div>
+              <p class="text-muted small mb-2 mt-2">{{ post.description|truncatewords:20 }}</p>
+              <a href="{% url 'blogs' post.slug %}" class="fw-bold">Continue reading...</a>
+          </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    <!-- Featured Posts End -->
+
+    <!-- Pagination -->
+    {% if posts.has_other_pages %}
+    <div style="display: flex; justify-content: center">
+      <nav aria-label="Topics pagination" class="mb-4">
+        <ul class="pagination">
+          {% if posts.has_previous %}
+          <li class="page-item">
+            <a class="page-link text-dark" href="?page={{ posts.previous_page_number }}">Previous</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+          </li>
+          {% endif %} 
+
+          {% for page_num in posts.paginator.page_range %} 
+          {% if posts.number == page_num %}
+          <li class="page-item active custom-active">
+            <span class="page-link"> {{ page_num }} </span>
+          </li>
+          {% else %}
+          <li class="page-item">
+            <a class="page-link text-dark" href="?page={{ page_num }}">{{ page_num }}</a>
+          </li>
+          {% endif %} 
+          {% endfor %} 
+
+          {% if posts.has_next %}
+          <li class="page-item">
+            <a class="page-link text-dark" href="?page={{ posts.next_page_number }}">Next</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Next</span>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+
+    <!-- Recent Blog Starts -->
+    <h3 class="text-uppercase text-dark border-bottom border-top p-2 mb-4" style="letter-spacing: 2px;">Recent Articles</h3>
+    <div class="row">
+      <div class="col-md-8">
+        {% for blog in blogs|slice:":3" %}
+        <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+          <div class="col p-4 d-flex flex-column position-static">
+            <strong class="d-inline-block mb-2 text-primary">{{ blog.category.category_name }}</strong>
+            <h3 class="mb-0">{{ blog.title }}</h3>
+            <div class="mb-1 text-muted">{{ blog.created_at | timesince }} ago | {{ blog.author }}</div>
+            <p class="card-text mb-auto">{{ blog.description | truncatewords:20 }}</p>
+            <a href="{% url 'blogs' blog.slug %}" class="stretched-link">Continue reading</a>
+          </div>
+          <div class="col-auto d-none d-lg-block">
+            {% if blog.image %}
+              <img src="{{ blog.image.url }}" 
+                   class="img-fluid" 
+                   style="width:200px; height:250px; object-fit:cover;" 
+                   alt="Post image">
+            {% else %}
+            <div style="width:200px; height:250px; background:#555; display:flex; align-items:center; justify-content:center; color:white;">
+              No Image
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <!-- Recent Blogs End -->
+
+      <div class="col-md-4">
+        <div class="position-sticky" style="top: 2rem;">
+          <div class="p-4 mb-3 bg-light rounded">
+            <h4 class="fst-italic">{{ about.about_heading }}</h4>
+            <p class="mb-0">{{ about.description }}</p>
+          </div>
+          <div class="p-4">
+            <h4 class="fst-italic">Follow Us</h4>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-decoration-none">GitHub</a></li>
+              <li><a href="#" class="text-decoration-none">LinkedIn</a></li>
+              <li><a href="#" class="text-decoration-none">Twitter</a></li>
+              <li><a href="#" class="text-decoration-none">Youtube</a></li>
+              <li><a href="#" class="text-decoration-none">Tiktok</a></li>
+              <li><a href="#" class="text-decoration-none">Facebook</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- Main Ends -->
+{% endblock %}

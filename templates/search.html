@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block main %}
+    <h3 class="text-uppercase text-primary mb-3" style="letter-spacing: 2px; text-align: center;">Search Term - {{ keyword }}</h3>
+    <div class="row mb-2">
+      {% if blogs %}
+      {% for i in blogs %}
+      <div class="col-md-6 d-flex"> 
+        <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm position-relative w-100" style="height: 250px;"> <div class="col p-4 d-flex flex-column position-static">
+            <strong class="d-inline-block mb-2 text-primary">{{ i.category.category_name }}</strong>
+            <h3 class="mb-0" style="font-size: 1.5rem;">{{ i.title|truncatechars:45 }}</h3>
+            <div class="mb-1 text-muted small">{{ i.created_at | timesince }} ago</div>
+
+            <p class="card-text mb-auto">{{ i.description | truncatewords:12 }}</p>
+
+            <a href="{% url 'blogs' i.slug %}" class="stretched-link fw-bold">Continue reading</a>
+          </div>
+        
+          <div class="col-auto d-none d-lg-block">
+            {% if i.image %}
+              <img src="{{ i.image.url }}" 
+                   style="width:200px; height:250px; object-fit:cover;" 
+                   alt="Post image">
+            {% else %}
+              <div style="width:200px; height:250px; background:#555; display:flex; align-items:center; justify-content:center; color:white;">
+                No Image
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p>No posts found</p>
+      {% endif %}
+    </div>
+
+{% endblock %}
